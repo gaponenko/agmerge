@@ -150,10 +150,6 @@ void FileMergeObjects::write(TDirectory *dir) const {
   }
 
   wd.cd_back();
-
-  if(subdir != dir) {
-    delete(subdir);
-  }
 }
 
 //================================================================
