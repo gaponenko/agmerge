@@ -5,3 +5,4 @@ AGMERGE.ROOTCHECK
 *.a
 *.root
 agmerge
+agwmerge

@@ -12,7 +12,7 @@
 
 
 //================================================================
-FileMergeObjects::FileMergeObjects(const std::string& filename) 
+FileMergeObjects::FileMergeObjects(const std::string& filename, double weight) 
   : Named("")
 {
   TFile infile(filename.c_str(), "READ");
@@ -20,22 +20,24 @@ FileMergeObjects::FileMergeObjects(const std::string& filename)
     throw std::runtime_error("FileMergeObjects(): can't open input file \""+filename+"\"");
   }
   
-  std::cout<<"FileMergeObjects(): initializing from file "<<filename<<std::endl;
-  init(infile);
+  std::cout<<"FileMergeObjects(): initializing from file "<<filename
+	   <<", weight="<<weight
+	   <<std::endl;
+  init(infile, weight);
   
   infile.Close();
 }
 
 //================================================================
-FileMergeObjects::FileMergeObjects(TDirectory& dir) 
+FileMergeObjects::FileMergeObjects(TDirectory& dir, double weight) 
   : Named(dir.GetName(), dir.GetTitle())
 {
   //std::cout<<"FileMergeObjects ctr from dir "<<dir.GetName()<<std::endl;
-  init(dir);
+  init(dir, weight);
 }
 
 //================================================================
-void FileMergeObjects::init(TDirectory& dir) {
+void FileMergeObjects::init(TDirectory& dir, double weight) {
   TList *keyList = dir.GetListOfKeys();
   if(keyList) {
     //std::cerr<<"Printing key list of length "<<keyList->GetSize()<<std::endl;
@@ -52,12 +54,13 @@ void FileMergeObjects::init(TDirectory& dir) {
       TDirectory *subdir = dynamic_cast<TDirectory*>(obj.get());
       if(subdir) {
 	// std::cout<<"init(): adding subdir for key name = "<<key->GetName()<<", title = "<<key->GetTitle()<<std::endl;
-	m_subDirs.push_back(*subdir);
+	m_subDirs.push_back(FileMergeObjects(*subdir,weight));
       } // subdir
       else {
 	TH1 *hist = dynamic_cast<TH1*>(obj.get());
 	if(hist) {
 	  hist->SetDirectory(0);
+	  hist->Scale(weight);
 	  m_hists.push_back(hist);
 	  obj.release();
 	} // hist
@@ -75,15 +78,17 @@ void FileMergeObjects::init(TDirectory& dir) {
 }
 
 //================================================================
-void FileMergeObjects::addFile(const std::string& filename) {
-  std::cout<<"FileMergeObjects: adding file "<<filename<<std::endl;
+void FileMergeObjects::addFile(const std::string& filename, double weight) {
+  std::cout<<"FileMergeObjects: adding file "<<filename
+	   <<", weight = "<<weight
+	   <<std::endl;
   TFile f(filename.c_str(), "READ");
-  addDirectory(f);
+  addDirectory(f, weight);
   f.Close();
 }
 
 //================================================================
-void FileMergeObjects::addDirectory(TDirectory& dir) {
+void FileMergeObjects::addDirectory(TDirectory& dir, double weight) {
   ChdirTemp wd(&dir);  
 
   //std::cout<<"FileMergeObjects: adding directory "<<dir.GetName()<<std::endl;
@@ -94,7 +99,7 @@ void FileMergeObjects::addDirectory(TDirectory& dir) {
     //std::cout<<"Getting subdir "<<subdirname<<std::endl;
     TDirectory *subdir = dynamic_cast<TDirectory*>(dir.Get(subdirname.c_str()));
     if(subdir) {
-      i->addDirectory(*subdir);
+      i->addDirectory(*subdir, weight);
     }
     else {
       throw std::runtime_error("FileMergeObjects::addDirectory(): NULL for subdir \""+subdirname+"\"");
@@ -110,7 +115,7 @@ void FileMergeObjects::addDirectory(TDirectory& dir) {
       // Note: 
       //   TH1::Add(TH1*, double) is affected by TH1::Scale()
       //   TH1::Add(TH1*, TH1*, double, double) is not
-      (*i)->Add(*i, hh.get(), 1., 1.);
+      (*i)->Add(*i, hh.get(), 1., weight);
     }
     else {
       throw std::runtime_error("FileMergeObjects::addDirectory(): NULL for histo \""+histname+"\"");

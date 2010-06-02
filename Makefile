@@ -5,7 +5,7 @@
 # A.Gaponenko, 2003, 2004
 #
 
-default: agmerge
+default: agmerge agwmerge
 .PHONY: default
 
 TOPDIR = .
@@ -26,7 +26,8 @@ LDFLAGS =
 AGMERGETOP = $(TOPDIR)
 include $(AGMERGETOP)/Module.mk
 
-################################################################
+#================================================================
+# agmerge:
 AGMERGEPROGSRCS 	:= agmerge.cxx
 AGMERGEPROGOBJS 	:= $(AGMERGEPROGSRCS:%.cxx=%.o)
 AGMERGEPROGDEPENDS := $(AGMERGEPROGSRCS:%.cxx=$(DEPDIR)/%.d)
@@ -39,14 +40,10 @@ agmerge: $(AGMERGEPROGOBJS) $(AGMERGELIB)
 	$(AGMERGELIB) $(shell root-config --libs) \
 	-Xlinker -rpath -Xlinker $(shell root-config --libdir)
 
-cleanall: clean
-.PHONY: cleanall
-
-clean: cleanagmergelib cleanagmergeprog
-.PHONY: cleanagmergelib cleanagmergeprog
+clean: cleanagmergeprog 
+.PHONY: cleanagmergeprog 
 cleanagmergeprog:
-	$(RM) $(TOPDIR)/agmergeprog
-	$(RM) $(OBJDIR)/*.o $(DEPDIR)/*.d	
+	$(RM) $(TOPDIR)/agmerge
 
 ifeq ($(findstring clean,$(MAKECMDGOALS)),)
 include $(AGMERGEPROGDEPENDS)
@@ -60,6 +57,48 @@ $(AGMERGEPROGDEPENDS): $(DEPDIR)/%.d: %.cxx
 $(AGMERGEPROGOBJS): %.o : %.cxx
 	$(CXX) $(AGMERGEPROGCXXFLAGS) -c $< -o $(OBJDIR)/$(*F).o
 
+
+#================================================================
+# agwmerge:
+AGWMERGEPROGSRCS 	:= agwmerge.cxx
+AGWMERGEPROGOBJS 	:= $(AGWMERGEPROGSRCS:%.cxx=%.o)
+AGWMERGEPROGDEPENDS := $(AGWMERGEPROGSRCS:%.cxx=$(DEPDIR)/%.d)
+
+AGWMERGEPROGCXXFLAGS := $(CXXFLAGS) $(shell root-config --cflags)
+
+agwmerge: $(AGWMERGEPROGOBJS) $(AGMERGELIB)
+	$(LD) -o $@ $(AGWMERGEPROGCXXFLAGS) $(LDFLAGS) \
+	$(AGWMERGEPROGOBJS:%.o=$(OBJDIR)/%.o) \
+	$(AGMERGELIB) $(shell root-config --libs) \
+	-Xlinker -rpath -Xlinker $(shell root-config --libdir)
+
+clean: cleanagwmergeprog 
+.PHONY: cleanagwmergeprog 
+cleanagwmergeprog:
+	$(RM) $(TOPDIR)/agwmerge
+
+ifeq ($(findstring clean,$(MAKECMDGOALS)),)
+include $(AGWMERGEPROGDEPENDS)
+endif
+
+$(AGWMERGEPROGDEPENDS): $(DEPDIR)/%.d: %.cxx
+	$(SHELL) -ec '$(CXX) -MM $(AGWMERGEPROGCXXFLAGS) $< \
+                      | sed s#$*.o#$*.o\ $*.d# > $@ ;\
+	[ -s $@ ] || rm -f $@; test -r $@ || exit 1'
+
+$(AGWMERGEPROGOBJS): %.o : %.cxx
+	$(CXX) $(AGWMERGEPROGCXXFLAGS) -c $< -o $(OBJDIR)/$(*F).o
+
+
+################################################################
+
+
+#also clean up the library by default
+clean: cleanagmergelib
+	$(RM) $(OBJDIR)/*.o $(DEPDIR)/*.d	
+
+cleanall: clean
+.PHONY: cleanall clean
 
 .DELETE_ON_ERROR:
 
