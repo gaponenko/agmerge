@@ -46,17 +46,16 @@ namespace agmerge {
     T* hh = dynamic_cast<T*>(histo);
     if(hh) {
 
+      if(!hh->fBinSumw2.fN) {
+	hh->Sumw2(); // ROOT 5.22.00/h did not have fBinSumw2 array at all, create it here
+      }
+
+      const double w2 = weight*weight;
       for(int i=0; i<hh->fN; ++i) {
 	hh->fArray[i] *= weight;
 	hh->fBinEntries.fArray[i] *= weight;
 	hh->fSumw2.fArray[i] *= weight;
-      }
-
-      const double w2 = weight*weight;
-      if(hh->fBinSumw2.fN) {
-	for(int i=0; i<hh->fN; ++i) {
-	  hh->fBinSumw2.fArray[i] *= w2;
-	}
+	hh->fBinSumw2.fArray[i] *= w2;
       }
 
       return true;
@@ -113,33 +112,27 @@ namespace agmerge {
 
   //================================================================
   template<class T> 
-  bool addToProfile(TH1* h1, const TH1* h2, double weight) {
+  bool addToProfile(TH1* h1, TH1* h2, double weight) {
     T* lhs = dynamic_cast<T*>(h1);
-    const T* rhs = dynamic_cast<const T*>(h2);
+    T* rhs = dynamic_cast<T*>(h2);
     if(lhs && rhs) {
       if(lhs->fN != rhs->fN) {
 	throw std::runtime_error("agmerge::addToProfile(TH1*, TH1*, double): "
 				 "incompatible histos - different num bins"
 				 );
       }
-      
+
+      if(!lhs->fBinSumw2.fN) {
+	lhs->Sumw2();
+	rhs->Sumw2();
+      }
+
+      const double w2 = weight*weight;
       for(int i=0; i<lhs->fN; ++i) {
 	lhs->fArray[i] += weight * rhs->fArray[i];
 	lhs->fBinEntries.fArray[i] += weight * rhs->fBinEntries.fArray[i];
 	lhs->fSumw2.fArray[i] += weight * rhs->fSumw2.fArray[i];
-      }
-
-      const double w2 = weight*weight;
-      if(lhs->fBinSumw2.fN) {
-	if(!rhs->fBinSumw2.fN) {
-	  throw std::runtime_error("agmerge::addToProfile(TH1*lhs, TH1*rhs, double): "
-				   "incompatible histos - no fBinSumw2 in rhs"
-				   );
-	}
-
-	for(int i=0; i<lhs->fN; ++i) {
-	  lhs->fBinSumw2.fArray[i] += w2 * rhs->fBinSumw2.fArray[i];
-	}
+	lhs->fBinSumw2.fArray[i] += w2 * rhs->fBinSumw2.fArray[i];
       }
 
       return true;
@@ -149,7 +142,7 @@ namespace agmerge {
 
   //----------------------------------------------------------------
   template<class T> 
-  bool addToHisto(TH1* h1, const TH1* h2, double weight) {
+  bool addToHisto(TH1* h1, TH1* h2, double weight) {
     T* lhs = dynamic_cast<T*>(h1);
     const T* rhs = dynamic_cast<const T*>(h2);
     if(lhs && rhs) {
@@ -183,7 +176,7 @@ namespace agmerge {
   }
 
   //----------------------------------------------------------------
-  void addTo(TH1* lhs, const TH1* rhs, double weight) {
+  void addTo(TH1* lhs, TH1* rhs, double weight) {
     if(! (addToProfile<TProfile3D>(lhs, rhs, weight) ||
 	  addToProfile<TProfile2D>(lhs, rhs, weight) ||
 	  addToProfile<TProfile>(lhs, rhs, weight) ||

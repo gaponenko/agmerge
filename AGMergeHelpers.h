@@ -19,7 +19,7 @@ namespace agmerge {
   // (Somewhat like TH1::Add(TH1*, TH1*, double, double)
   // but with correct handling of profile histos
   // and without all the crust.)
-  void addTo(TH1* lhs, const TH1* rhs, double rhs_weight);
+  void addTo(TH1* lhs, TH1* rhs, double rhs_weight);
 }
 
 #endif/*AGMERGEHELPERS_H*/
