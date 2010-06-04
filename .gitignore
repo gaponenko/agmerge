@@ -6,3 +6,5 @@ AGMERGE.ROOTCHECK
 *.root
 agmerge
 agwmerge
+agxmerge
+test/makehistos

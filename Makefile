@@ -5,7 +5,7 @@
 # A.Gaponenko, 2003, 2004
 #
 
-default: agmerge agwmerge
+default: agmerge agwmerge agxmerge
 .PHONY: default
 
 TOPDIR = .
@@ -88,6 +88,38 @@ $(AGWMERGEPROGDEPENDS): $(DEPDIR)/%.d: %.cxx
 
 $(AGWMERGEPROGOBJS): %.o : %.cxx
 	$(CXX) $(AGWMERGEPROGCXXFLAGS) -c $< -o $(OBJDIR)/$(*F).o
+
+
+#================================================================
+# agxmerge:
+AGXMERGEPROGSRCS 	:= agxmerge.cxx
+AGXMERGEPROGOBJS 	:= $(AGXMERGEPROGSRCS:%.cxx=%.o)
+AGXMERGEPROGDEPENDS := $(AGXMERGEPROGSRCS:%.cxx=$(DEPDIR)/%.d)
+
+AGXMERGEPROGCXXFLAGS := $(CXXFLAGS) $(shell root-config --cflags)
+
+agxmerge: $(AGXMERGEPROGOBJS) $(AGMERGELIB)
+	$(LD) -o $@ $(AGXMERGEPROGCXXFLAGS) $(LDFLAGS) \
+	$(AGXMERGEPROGOBJS:%.o=$(OBJDIR)/%.o) \
+	$(AGMERGELIB) $(shell root-config --libs) \
+	-Xlinker -rpath -Xlinker $(shell root-config --libdir)
+
+clean: cleanagxmergeprog 
+.PHONY: cleanagxmergeprog 
+cleanagxmergeprog:
+	$(RM) $(TOPDIR)/agxmerge
+
+ifeq ($(findstring clean,$(MAKECMDGOALS)),)
+include $(AGXMERGEPROGDEPENDS)
+endif
+
+$(AGXMERGEPROGDEPENDS): $(DEPDIR)/%.d: %.cxx
+	$(SHELL) -ec '$(CXX) -MM $(AGXMERGEPROGCXXFLAGS) $< \
+                      | sed s#$*.o#$*.o\ $*.d# > $@ ;\
+	[ -s $@ ] || rm -f $@; test -r $@ || exit 1'
+
+$(AGXMERGEPROGOBJS): %.o : %.cxx
+	$(CXX) $(AGXMERGEPROGCXXFLAGS) -c $< -o $(OBJDIR)/$(*F).o
 
 
 ################################################################
