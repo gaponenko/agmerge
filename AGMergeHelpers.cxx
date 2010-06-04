@@ -124,6 +124,9 @@ namespace agmerge {
 
       if(!lhs->fBinSumw2.fN) {
 	lhs->Sumw2();
+      }
+      
+      if(!rhs->fBinSumw2.fN) {
 	rhs->Sumw2();
       }
 
