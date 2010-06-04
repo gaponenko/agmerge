@@ -10,6 +10,7 @@
 #include "TKey.h"
 #include "TH1.h"
 
+#include "AGMergeHelpers.h"
 
 //================================================================
 FileMergeObjects::FileMergeObjects(const std::string& filename, double weight) 
@@ -46,7 +47,7 @@ void FileMergeObjects::init(TDirectory& dir, double weight) {
     //----------------------------------------------------------------
     TIter it(keyList);
     TKey *key(0);
-    while( key = (TKey*)it() ) {
+    while( (key = dynamic_cast<TKey*>(it())) ) {
       // std::cout<<"init(): key name = "<<key->GetName()<<", title = "<<key->GetTitle()<<std::endl;
       
       std::auto_ptr<TObject> obj(dir.Get(key->GetName()));
@@ -60,7 +61,11 @@ void FileMergeObjects::init(TDirectory& dir, double weight) {
 	TH1 *hist = dynamic_cast<TH1*>(obj.get());
 	if(hist) {
 	  hist->SetDirectory(0);
-	  hist->Scale(weight);
+
+	  //tmp tmp tmp tmp 
+	  // FIXME:
+	  //hist->Sumw2();
+	  agmerge::applyWeight(hist, weight);
 	  m_hists.push_back(hist);
 	  obj.release();
 	} // hist
@@ -112,10 +117,8 @@ void FileMergeObjects::addDirectory(TDirectory& dir, double weight) {
     //std::cout<<"Getting histo "<<histname<<std::endl;
     std::auto_ptr<TH1> hh(dynamic_cast<TH1*>(dir.Get(histname.c_str())));
     if(hh.get()) {
-      // Note: 
-      //   TH1::Add(TH1*, double) is affected by TH1::Scale()
-      //   TH1::Add(TH1*, TH1*, double, double) is not
-      (*i)->Add(*i, hh.get(), 1., weight);
+      // was: (*i)->Add(*i, hh.get(), 1., weight);
+      agmerge::addTo(*i, hh.get(), weight);
     }
     else {
       throw std::runtime_error("FileMergeObjects::addDirectory(): NULL for histo \""+histname+"\"");

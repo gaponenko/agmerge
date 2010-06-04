@@ -20,7 +20,8 @@ vpath %.o $(AGMERGEODIR)
 AGMERGELIB = $(AGMERGELDIR)/libagmerge.a
 
 ################################################################
-AGMERGELIBSRCS 	:= FileMergeObjects.cxx InputFileGetter.cxx RootUtils.cxx
+AGMERGELIBSRCS 	:= FileMergeObjects.cxx InputFileGetter.cxx RootUtils.cxx \
+	getHisto.cxx AGMergeHelpers.cxx
 AGMERGELIBOBJS 	:= $(AGMERGELIBSRCS:%.cxx=%.o)
 AGMERGELIBDEPENDS := $(AGMERGELIBSRCS:%.cxx=$(DEPDIR)/%.d)
 

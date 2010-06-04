@@ -6,7 +6,7 @@
 /// can not be freely copied by the client code.
 /// Copy ctr is not declared private because it is used internally.
 ///
-/// A. Gaponenko, 2002-2004
+/// A. Gaponenko, 2010
 
 #ifndef FILEMERGEOBJECTS_H
 #define FILEMERGEOBJECTS_H
