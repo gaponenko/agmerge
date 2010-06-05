@@ -61,9 +61,6 @@ namespace {
       throw std::runtime_error("getNumEvents(): refbin out of range");
     }
 
-    std::cout<<"getNumEvents("<<filename<<", "
-	     <<refhisto<<", "<<refbin
-	     <<") = "<<hh->GetBinContent(refbin)<<std::endl;
     return hh->GetBinContent(refbin);
   }
 
