@@ -61,14 +61,6 @@ for ds in opt.datasets:
     print "Producing ",outfile
     infiles = glob.glob(ds + "/*/*.mh.root")
 
-    if len(infiles) == 0:
-        infiles = glob.glob(ds + "/*.mh.root")
-
-        if len(infiles) == 0:
-            print >>sys.stderr, "ERROR: no input files for ", ds
-            sys.exit(1)
-            pass
-
     xsfilepairs = []
 
     for fn in infiles:
