@@ -6,18 +6,20 @@ import glob
 import re
 import subprocess
 import string
+import argparse
 
-#targetLumi = 35000. # inb
+
+parser = argparse.ArgumentParser(description='Combine ROOT files according to the process cross section.')
+
+parser.add_argument('--dbfile', required=True)
 #targetLumi = 30010.6 # inb
-#refh = "ex20_45/exmu20/cuts_p"
-targetLumi = 1000000 # inb = 1ifb
-refh = "rc20_45/exmu30000/cuts_p"
-refbin = 1
+parser.add_argument('--targetLumi', type=float, required=True, help='Target lumi for scaling, in the units corresponding to the dbfile')
+parser.add_argument('--refh', default='rc20_45/exmu30000/cuts_p', help='A cuts_p histogram')
+parser.add_argument('--refbin', default=1, type=int, help='N before cuts bin in the cuts_p histogram')
+parser.add_argument('datasets', nargs='+', help='List of *output* dataset dirs - input components are looked for underneath each of the dirs')
 
-
-
-dbfile = sys.argv[1]
-datasets = sys.argv[2:]
+opt = parser.parse_args()
+#print 'got: ',opt
 
 comment = r"^\s*#"
 
@@ -32,10 +34,10 @@ def getDSNum(fn):
 
 #================================================================
 
-print "Reading dbfile ",dbfile
+print "Reading dbfile ",opt.dbfile
 xsec = {}
 geneff = {}
-f = open(dbfile, 'r')
+f = open(opt.dbfile, 'r')
 for line in f:
 
     m = re.match(comment, line)
@@ -54,7 +56,7 @@ del(f)
 
 #print "xsec = ",xsec
 
-for ds in datasets:
+for ds in opt.datasets:
     outfile = ds + "/" + os.path.basename(ds).replace("_AGRS","") + ".ms.root"
     print "Producing ",outfile
     infiles = glob.glob(ds + "/*/*.mh.root")
@@ -89,9 +91,9 @@ for ds in datasets:
     try:
         retcode = subprocess.call([#'/bin/echo',
                                    '/home/f14/andr/scripts/agxmerge',
-                                   '--targetLumi',  str(targetLumi),
-                                   '--refh', refh,
-                                   '--refbin', str(refbin),
+                                   '--targetLumi',  str(opt.targetLumi),
+                                   '--refh', opt.refh,
+                                   '--refbin', str(opt.refbin),
                                    '--out', outfile
                                    ] + xsfilepairs)
         if retcode != 0:
