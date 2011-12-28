@@ -57,7 +57,7 @@ del(f)
 #print "xsec = ",xsec
 
 for ds in opt.datasets:
-    outfile = ds + "/" + os.path.basename(ds).replace("_AGRS","") + ".ms.root"
+    outfile = ds + "/" + os.path.basename(ds).replace("_AGRS","") + ".lumi"+str(opt.targetLumi).replace('.', '_')+".ms.root"
     print "Producing ",outfile
     infiles = glob.glob(ds + "/*/*.mh.root")
 
