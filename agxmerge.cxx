@@ -94,6 +94,8 @@ std::string usage() {
 
 //================================================================
 int main(int argc, char* const argv[]) {
+  int ret = 1;
+
   TH1::AddDirectory(kFALSE);
 
   for(int i=1; i<argc; ++i) {
@@ -151,6 +153,8 @@ int main(int argc, char* const argv[]) {
     }
     double numEvents1 = getNumEvents(firstInFile, refhisto, refbin);
     double w1 = computeWeight(targetLumi, xs1, numEvents1);
+    std::cout<<"L = "<<(numEvents1/xs1)<<" for "<<firstInFile<<std::endl;
+
     FileMergeObjects fo(firstInFile, w1);
 
     for(WFPair inputs = nextPair(files); 
@@ -159,6 +163,7 @@ int main(int argc, char* const argv[]) {
       {
 	double numEvents = getNumEvents(inputs.second, refhisto, refbin);
 	double w = computeWeight(targetLumi, inputs.first, numEvents);
+	std::cout<<"L = "<<(numEvents/inputs.first)<<" for "<<inputs.second<<std::endl;
 	fo.addFile(inputs.second, w);
       }
     
@@ -167,6 +172,8 @@ int main(int argc, char* const argv[]) {
 
     std::cout<<"Closing output file \t"<<std::endl;
     outfile.Close();
+
+    ret = 0;
   }
   catch(std::exception& e) {
     std::cerr<<"ERROR: got std::exception: "<<e.what()<<std::endl;
@@ -175,7 +182,7 @@ int main(int argc, char* const argv[]) {
     std::cerr<<"ERROR: got a non-standard exception"<<std::endl;
   }
 
-  return 0;
+  return ret;
 }
 
 //================================================================
