@@ -1,0 +1,18 @@
+General use utilities.  Run them with --help for more information.
+
+    agmerge is a replacement for the "hadd" command shipped with ROOT.
+    	Unlike hadd, it only merges histograms, not ntuples or other
+    	objects.  Unlike hadd, it does not crash when merging more
+    	than a few dozen input files each containing many histograms
+    	in mutliple nested subdirectories.  In fact agmerge can handle
+    	an arbitrary number of input files: use the --stdin switch if
+    	there are more files than the shell command line allows.
+    
+    agwmerge adds up histograms applying arbitrary per-file weights
+    
+    agxmerge adds up histograms and scales to a specified luminosity,
+    	 taking into account sample cross sections.  Counts of
+    	 generated events for each sample must be recorded in the
+    	 input files (the --refh and --refbin parameters).
+    
+Other executables in this package are ATLAS specific.
